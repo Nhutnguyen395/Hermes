@@ -1,0 +1,21 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: hermes-cluster
+nodes:
+  # Kubernetes control plan (brain of the cluster)
+  - role: control-plane
+
+  # The Core Origin Node (Where our Spring Boot app will live)
+  - role: worker
+    labels:
+      topology.kubernetes.io/region: "core-origin"
+
+  # US East Edge PoP
+  - role: worker
+    labels:
+      topology.kubernetes.io/region: "us-east"
+
+  # EU West Edge PoP
+  - role: worker
+    labels:
+      topology.kubernetes.io/region: "eu-west"

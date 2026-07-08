@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: origin-deployment
+  labels:
+    app: origin-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: origin-service
+  template:
+    metadata:
+      labels:
+        app: origin-service
+    spec:
+      # This forces the Pod to ONLY run on the core-origin node!
+      nodeSelector:
+        topology.kubernetes.io/region: "core-origin"
+      containers:
+        - name: origin-service
+          image: hermes/origin-service:1.0.0
+          imagePullPolicy: Never # Tell Kubernetes to use local image, not Docker Hub
+          ports:
+            - containerPort: 8080

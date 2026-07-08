@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: origin-service
+spec:
+  selector:
+    app: origin-service
+  ports:
+    - protocol: TCP
+      port: 80 # The port other pods will use to talk to the origin
+      targetPort: 8080 # The port the Spring Boot container is listening on
