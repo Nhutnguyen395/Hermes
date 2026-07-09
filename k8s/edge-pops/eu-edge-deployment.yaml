@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eu-edge-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eu-edge
+  template:
+    metadata:
+      labels:
+        app: eu-edge
+    spec:
+      # Lock this proxy to the EU West region
+      nodeSelector:
+        topology.kubernetes.io/region: "eu-west"
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: edge-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eu-edge-service
+spec:
+  selector:
+    app: eu-edge
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
