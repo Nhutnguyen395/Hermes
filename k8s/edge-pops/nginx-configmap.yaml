@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-nginx-config
+data:
+  nginx.conf: |
+    events {}
+    http {
+      # Define the cache location, size (1GB), and memory zone (10MB per key)
+      proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=hermes_cache:10m max_size=1g inactive=60m use_temp_path=off;
+      
+      upstream origin {
+        # Kubernetes internal DNS automatically resolved this to our Spring Boot pods
+        server origin-service.default.svc.cluster.local:80;
+      }
+      
+      server {
+        listen 80;
+      
+        location / {
+          proxy_pass http://origin;
+          
+          # Enable caching using the zone defined above
+          proxy_cache hermes_cache;
+          proxy_cache_valid 200 302 10m; # Cache successful responses for 10 minutes
+    
+          # Ignore origin headers that might prevent caching
+          proxy_ignore_headers Cache-Control;
+      
+          # Expose the cache status (HIT, MISS, EXPIRED) to the client
+          add_header X-Cache-Status $upstream_cache_status;
+        }
+      }
+    }

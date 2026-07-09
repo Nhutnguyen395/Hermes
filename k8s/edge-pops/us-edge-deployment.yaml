@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: us-edge-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: us-edge
+  template:
+    metadata:
+      labels:
+        app: us-edge
+    spec:
+      # Lock this proxy to the US East region
+      nodeSelector:
+        topology.kubernetes.io/region: "us-east"
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            # Mount the config map into the container's file system
+            - name: nginx-config-volume
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config-volume
+          configMap:
+            name: edge-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: us-edge-service
+spec:
+  selector:
+    app: us-edge
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
