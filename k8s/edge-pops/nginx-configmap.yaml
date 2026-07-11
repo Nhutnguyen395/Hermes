@@ -28,10 +28,13 @@ data:
           
           # Enable caching using the zone defined above
           proxy_cache hermes_cache;
-          proxy_cache_valid 200 302 10m; # Cache successful responses for 10 minutes
+          proxy_cache_valid 200 302 10m;
     
-          # Ignore origin headers that might prevent caching
-          proxy_ignore_headers Cache-Control;
+          # Ignore all spring security anti-caching headers
+          proxy_ignore_headers Cache-Control Expires;
+          
+          # Add the JWT token to the Cache Key
+          proxy_cache_key "$scheme$request_method$host$request_uri$http_authorization";
       
           # Expose the cache status (HIT, MISS, EXPIRED) to the client
           add_header X-Cache-Status $upstream_cache_status;

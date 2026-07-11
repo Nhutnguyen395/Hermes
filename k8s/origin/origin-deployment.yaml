@@ -19,7 +19,7 @@ spec:
         topology.kubernetes.io/region: "core-origin"
       containers:
         - name: origin-service
-          image: hermes/origin-service:1.0.0
+          image: hermes/origin-service:1.1.0
           imagePullPolicy: Never # Tell Kubernetes to use local image, not Docker Hub
           ports:
             - containerPort: 8080
