@@ -16,6 +16,7 @@ spec:
       nodeSelector:
         topology.kubernetes.io/region: "eu-west"
       containers:
+        # Container 1: The NGINX Reverse Proxy
         - name: nginx
           image: nginx:alpine
           ports:
@@ -24,10 +25,27 @@ spec:
             - name: nginx-config-volume
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
+            - name: shared-cache-volume
+              mountPath: /var/cache/nginx
+
+        # Container 2: Custom Go Invalidator Sidecar
+        - name: invalidator-sidecar
+          image: hermes/invalidator-sidecar:1.0.1
+          imagePullPolicy: Never
+          env:
+            - name: KAFKA_BROKER
+              value: "hermes-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+            - name: KAFKA_TOPIC
+              value: "cache-invalidation-events"
+          volumeMounts:
+            - name: shared-cache-volume
+              mountPath: /var/cache/nginx
       volumes:
         - name: nginx-config-volume
           configMap:
             name: edge-nginx-config
+        - name: shared-cache-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

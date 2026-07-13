@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -12,12 +13,22 @@ func main() {
 	topic := os.Getenv("KAFKA_TOPIC")
 	cacheDir := "/var/cache/nginx"
 
+	// Get the unique kubernetes Pod Name (Hostname)
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown-host"
+	}
+
+	// Create a UNIQUE group ID for this specific pod
+	uniqueGroupID := "invalidator-" + hostname
+
 	fmt.Printf("Starting Hermes Cache Invalidator Sidecar... \n")
 	fmt.Printf("Listening to Kafka Broker: %s, Topic: %s\n", kafkaBroker, topic)
 
+	// Use the unique group id
 	reader := kafka.NewReader(kafka.ReaderConfig {
 		Brokers: []string{kafkaBroker},
-		GroupID: "edge-cache-invalidator-group",
+		GroupID: uniqueGroupID,
 		Topic: topic,
 		MinBytes: 10e3, // 10KB
 		MaxBytes: 10e6, // 10MB
@@ -36,15 +47,19 @@ func main() {
 
 		fmt.Printf("Received Invalidation Event: %s\n", string(msg.Value))
 
-		// Clear the Cache directory
-		// Wipe the directory to guarantee a fresh start
-		err = os.RemoveAll(cacheDir)
+		// Safely delete the contents of the cache director
+		entries, err := os.ReadDir(cacheDir)
 		if err != nil {
-			fmt.Printf("Failed to delete cache: %v\n", err)
-		} else {
-			// Recreate the empty directory so NGINX can continue to write to it
-			os.MkdirAll(cacheDir, 0755)
-			fmt.Println("Successfully purged NGINX cache directory!")
+			fmt.Printf("Failed to read cache directory: %v\n", err)
+			continue
 		}
+
+		for _, entry := range entries {
+			err := os.RemoveAll(filepath.Join(cacheDir, entry.Name()))
+			if err != nil {
+				fmt.Printf("Failed to delete %s: %v\n", entry.Name(), err)
+			}
+		}
+		fmt.Println("Successfully purged NGINX cache contents!")
 	}
 }
