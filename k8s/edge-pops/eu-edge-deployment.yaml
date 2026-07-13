@@ -30,7 +30,7 @@ spec:
 
         # Container 2: Custom Go Invalidator Sidecar
         - name: invalidator-sidecar
-          image: hermes/invalidator-sidecar:1.0.1
+          image: hermes/invalidator-sidecar:1.0.2
           imagePullPolicy: Never
           env:
             - name: KAFKA_BROKER

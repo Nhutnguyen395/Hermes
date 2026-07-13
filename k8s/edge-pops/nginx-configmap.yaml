@@ -25,6 +25,9 @@ data:
           limit_req zone=hermes_ratelimit burst=2 nodelay;
     
           proxy_pass http://origin;
+        
+          # EXPLICIT CACHE KEY: We tell NGINX to just use the URI (e.g., /api/v1/assets/secure-image-1)
+          proxy_cache_key "$request_uri";
           
           # Enable caching using the zone defined above
           proxy_cache hermes_cache;
@@ -32,9 +35,6 @@ data:
     
           # Ignore all spring security anti-caching headers
           proxy_ignore_headers Cache-Control Expires;
-          
-          # Add the JWT token to the Cache Key
-          proxy_cache_key "$scheme$request_method$host$request_uri$http_authorization";
       
           # Expose the cache status (HIT, MISS, EXPIRED) to the client
           add_header X-Cache-Status $upstream_cache_status;

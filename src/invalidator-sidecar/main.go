@@ -2,11 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"github.com/segmentio/kafka-go"
 )
+
+type InvalidationEvent struct {
+	AssetID string `json:"assetId"`
+}
 
 func main() {
 	kafkaBroker := os.Getenv("KAFKA_BROKER")
@@ -14,16 +21,11 @@ func main() {
 	cacheDir := "/var/cache/nginx"
 
 	// Get the unique kubernetes Pod Name (Hostname)
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown-host"
-	}
-
-	// Create a UNIQUE group ID for this specific pod
+	hostname, _ := os.Hostname()
 	uniqueGroupID := "invalidator-" + hostname
 
-	fmt.Printf("Starting Hermes Cache Invalidator Sidecar... \n")
-	fmt.Printf("Listening to Kafka Broker: %s, Topic: %s\n", kafkaBroker, topic)
+	fmt.Printf("Starting Hermes Targeted Cache Invalidator... \n")
+	fmt.Printf("Pod: %s | Listening to Topic: %s\n", hostname, topic)
 
 	// Use the unique group id
 	reader := kafka.NewReader(kafka.ReaderConfig {
@@ -45,21 +47,38 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("Received Invalidation Event: %s\n", string(msg.Value))
-
-		// Safely delete the contents of the cache director
-		entries, err := os.ReadDir(cacheDir)
+		// Parse the JSON
+		var event InvalidationEvent
+		err = json.Unmarshal(msg.Value, &event)
 		if err != nil {
-			fmt.Printf("Failed to read cache directory: %v\n", err)
-			continue
+			fmt.Printf("Failed to parse JSON: %v\n", err)
 		}
 
-		for _, entry := range entries {
-			err := os.RemoveAll(filepath.Join(cacheDir, entry.Name()))
-			if err != nil {
-				fmt.Printf("Failed to delete %s: %v\n", entry.Name(), err)
+		cacheKey := "/api/v1/assets/" + event.AssetID
+
+		// Compute the MD5 Hash
+		hash := md5.Sum([]byte(cacheKey))
+		hashStr := hex.EncodeToString(hash[:])
+
+		// Calculate the NGINX folder structure based on levels=1:2
+		// Last character of hash
+		dir1 := hashStr[len(hashStr)-1:]
+		// Next two character from the end
+		dir2 := hashStr[len(hashStr)-3 : len(hashStr)-1]
+
+		// Build the full path to the specific cache file
+		targetFile := filepath.Join(cacheDir, dir1, dir2, hashStr)
+
+		// Delete only the specific file
+		err = os.Remove(targetFile)
+		if err != nil {
+			if os.IsNotExist(err) {
+				fmt.Printf("Cache file for %s not found (already purged or never cached).\n", event.AssetID)
+			} else {
+				fmt.Printf("Failed to delete cache file: %v\n", err)
 			}
+		} else {
+			fmt.Printf("SUCCESS: Targeted purge completed for %s!\n", event.AssetID)
 		}
-		fmt.Println("Successfully purged NGINX cache contents!")
 	}
 }
