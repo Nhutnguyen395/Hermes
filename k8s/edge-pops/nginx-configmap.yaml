@@ -11,6 +11,10 @@ data:
     
       # Rate Limit Zone: Allocate 10MB to track IPs ($binary_remote_addr). Limit to 1 request per seconds.
       limit_req_zone $binary_remote_addr zone=hermes_ratelimit:10m rate=1r/s;
+    
+      log_format cache_log '$remote_addr - - [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" "$upstream_cache_status"';
+      
+      access_log /var/log/nginx/access.log cache_log;
       
       upstream origin {
         # Kubernetes internal DNS automatically resolved this to our Spring Boot pods

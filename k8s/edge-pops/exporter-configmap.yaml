@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-exporter-config
+data:
+  config.yml: |
+    listen:
+      port: 4040
+    namespaces:
+      - name: hermes_cdn
+        format: "$remote_addr - - [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" \"$upstream_cache_status\""
+        source:
+          files:
+            - /var/log/nginx/access.log
+        relabel_configs:
+          - target_label: upstream_cache_status
+            from: upstream_cache_status

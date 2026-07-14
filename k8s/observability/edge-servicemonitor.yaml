@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: edge-servicemonitor
+  namespace: default
+  labels:
+    release: hermes-monitoring
+spec:
+  selector:
+    matchLabels:
+      layer: edge-proxy
+  endpoints:
+    - port: metrics-port
+      interval: 15s
