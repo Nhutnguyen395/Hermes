@@ -27,6 +27,8 @@ spec:
               subPath: nginx.conf
             - name: shared-cache-volume
               mountPath: /var/cache/nginx
+            - name: nginx-logs-volume
+              mountPath: /var/log/nginx
 
         # Container 2: Custom Go Invalidator Sidecar
         - name: invalidator-sidecar
@@ -40,21 +42,47 @@ spec:
           volumeMounts:
             - name: shared-cache-volume
               mountPath: /var/cache/nginx
+
+        # 3: Prometheus Log Exporter Sidecar
+        - name: log-exporter-sidecar
+          image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.11.0
+          ports:
+            - containerPort: 4040
+          volumeMounts:
+            - name: nginx-logs-volume
+              mountPath: /var/log/nginx
+            - name: exporter-config-volume
+              mountPath: /etc/prometheus-nginxlog-exporter/config.yml
+              subPath: config.yml
+          args: [ "-config-file", "/etc/prometheus-nginxlog-exporter/config.yml" ]
       volumes:
         - name: nginx-config-volume
           configMap:
             name: edge-nginx-config
         - name: shared-cache-volume
           emptyDir: {}
+        - name: nginx-logs-volume
+          emptyDir: { }
+        - name: exporter-config-volume
+          configMap:
+            name: edge-exporter-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: eu-edge-service
+  labels:
+    app: eu-edge
+    layer: edge-proxy
 spec:
   selector:
     app: eu-edge
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
       targetPort: 80
+    - name: metrics-port
+      protocol: TCP
+      port: 4040
+      targetPort: 4040
