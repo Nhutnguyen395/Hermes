@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: origin-servicemonitor
+  namespace: default
+  labels:
+    release: hermes-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: origin-service
+  endpoints:
+    - port: http-metrics
+      path: /actuator/prometheus
+      interval: 15s

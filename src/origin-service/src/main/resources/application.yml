@@ -4,3 +4,12 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: "https://dev-oqlh6fbdfl854f4c.us.auth0.com/"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: origin-service
