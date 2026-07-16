@@ -32,8 +32,13 @@ jobs:
       # 4. Load new images into the Kind cluster
       - name: Load Docker Image into Kind
         run: |
-          kind load docker-image hermes/origin-service:1.2.0 --name hermes-cluster
-          kind load docker-image hermes/invalidator-sidecar:1.0.2 --name hermes-cluster
+          echo "Saving Docker images to tar archives..."
+          docker save hermes/origin-service:1.2.0 -o origin.tar
+          docker save hermes/invalidator-sidecar:1.0.2 -o invalidator.tar
+          
+          echo "Loading tar archives into the Kind cluster..."
+          kind load image-archive origin.tar --name hermes-cluster
+          kind load image-archive invalidator.tar --name hermes-cluster
 
       # 5. Deploy the Infrastructure (Kafka & Gateway API)
       - name: Install Operators (Kafka & Gateway API
