@@ -24,9 +24,9 @@ jobs:
 
       # 3. Create a kubernetes Kind cluster using community Action
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.10.0
+        uses: helm/kind-action@v2.328.0
         with:
-          config: ./k8s/cluster-setup/kind-config.yml
+          config: ./k8s/cluster-setup/kind-config.yaml
           cluster_name: hermes-cluster
 
       # 4. Load new images into the Kind cluster
