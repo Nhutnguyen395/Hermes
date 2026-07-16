@@ -1,0 +1,74 @@
+name: Hermes CI/CD pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code from the repo
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Build the Docker Images
+      - name: Build Origin Service Image
+        run: docker build -t Hermes/origin-service:1.2.0 ./src/originservice
+
+      - name: Build Go Invalidator
+        run: docker build -t hermes/invalidator-sidecar:1.0.2 ./src/invalidator-sidecar
+
+      # 3. Create a kubernetes Kind cluster using community Action
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          config: ./k8s/cluster-setup/kind-config.yml
+          cluster_name: hermes-cluster
+
+      # 4. Load new images into the Kind cluster
+      - name: Load Docker Image into Kind
+        run: |
+          kind load docker-image hermes/origin-service:1.2.0 --name hermes-cluster
+          kind load docker-image hermes/invalidator-sidecar:1.2.0 --name hermes-cluster
+
+      # 5. Deploy the Infrastructure (Kafka & Gateway API)
+      - name: Install Operators (Kafka & Gateway API
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+          helm repo add strimzi https://strimzi.io/charts/
+          helm install strimzi-kafka-operator strimzi/strimzi-kafka-operator -n kafka --create-namespace --wait
+          kubectl apply -f ./k8s/kafka/kafka-cluster.yaml -n kafka
+
+      # 6. Deploy Hermes Microservices
+      - name: Deploy Hermes CDN
+        run: |
+          kubectl apply -f ./k8s/origin/
+          kubectl apply -f ./k8s/edge-pops/
+
+      # 7. Validation/Test: Wait for Pods to become Ready
+      # If pods crash then the pipeline fails
+      - name: Verify Origin Pod Health
+        run: |
+          echo "Waiting for Origin Service to be ready..."
+          kubectl wait --for=condition=ready pod -l app=origin-service --timeout=120s
+
+      - name: Verify US edge Pod Health
+        run: |
+          echo "Waiting for US Edge Proxy to be ready..."
+          kubectl wait --for=condition=ready pod -l app=us-edge --timeout=120s
+
+      - name: Verify Eu edge Pod Health
+        run: |
+          echo "Waiting for EU Edge Proxy to be ready..."
+          kubectl wait --for=condition=ready pod -l app=eu-edge --timeout=120s
+
+      # 8. Print Cluster Sate
+      - name: Debug Cluster State
+        if: always()
+        run: |
+          kubectl get nodes -o wide
+          kubectl get pods -A
