@@ -33,7 +33,7 @@ jobs:
       - name: Load Docker Image into Kind
         run: |
           kind load docker-image hermes/origin-service:1.2.0 --name hermes-cluster
-          kind load docker-image hermes/invalidator-sidecar:1.2.0 --name hermes-cluster
+          kind load docker-image hermes/invalidator-sidecar:1.0.2 --name hermes-cluster
 
       # 5. Deploy the Infrastructure (Kafka & Gateway API)
       - name: Install Operators (Kafka & Gateway API
