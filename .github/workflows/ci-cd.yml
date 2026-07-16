@@ -17,7 +17,7 @@ jobs:
 
       # 2. Build the Docker Images
       - name: Build Origin Service Image
-        run: docker build -t Hermes/origin-service:1.2.0 ./src/originservice
+        run: docker build -t Hermes/origin-service:1.2.0 ./src/origin-service
 
       - name: Build Go Invalidator
         run: docker build -t hermes/invalidator-sidecar:1.0.2 ./src/invalidator-sidecar
