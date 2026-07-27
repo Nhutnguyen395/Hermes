@@ -6,5 +6,6 @@ class Diagnosis(BaseModel):
     confidence: float = Field(description="Confidence score from 0.0 to 1.0")
     affected_component: Literal["edge_pop", "origin", "gateway", "kafka", "auth"]
     recommended_action: Literal["purge_key", "scale_replica", "adjust_rate_limit", "reroute", "rollback_auth", "purge_all", "no_action"]
+    target_resource: str = Field(description="The specific cache key, URL, or pod name to target. If none applies, return 'none'. E.g., '/assets/video.mp4'")
     risk_tier: Literal["auto", "escalate"]
     evidence: List[str] = Field(description="List of metrics or log signals that led to this diagnosis.")
