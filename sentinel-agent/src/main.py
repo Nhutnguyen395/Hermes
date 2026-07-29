@@ -2,13 +2,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Response
+from fastapi.responses import PlainTextResponse
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from src.agent import diagnose_alert
 from src.executor.kafka_actions import publish_purge_event
 from src.db.database import init_db, create_incident, get_pending_incidents, get_incident, update_incident_status
 
 app = FastAPI(title="Hermes Sentinel SRE Agent")
 init_db()
+
+AGENT_DIAGNOSES_TOTAL = Counter(
+    'sentinel_diagnoses_total',
+    'Total number of alerts diagnosed by the agent',
+    ['risk_tier', 'action']
+)
+
+AGENT_ERRORS_TOTAl = Counter(
+    'sentinel_errors_total',
+    'Total number of errors encountered during agent processing'
+)
+
+@app.get("/metrics", response_class=PlainTextResponse)
+def metrics():
+    """ Endpoint for Prometheus to scrape our custom metrics. """
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.post("/webhook")
 async def alertmanager_webhook(request: Request):
@@ -28,6 +46,11 @@ async def alertmanager_webhook(request: Request):
                 print(f"Cause: {diagnosis.root_cause}")
                 print(f"Action: {diagnosis.recommended_action}")
                 print(f"Assigned Tier: {diagnosis.risk_tier.upper()}")
+
+                AGENT_DIAGNOSES_TOTAL.labels(
+                    risk_tier=diagnosis.risk_tier,
+                    action=diagnosis.recommended_action
+                ).inc()
 
                 if diagnosis.risk_tier == "auto":
                     print("[!] Auto-remediation authorized. Executing...")
