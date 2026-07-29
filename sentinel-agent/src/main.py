@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Request, HTTPException
-from src.agent import diagnosis_alert
+from src.agent import diagnose_alert
 from src.executor.kafka_actions import publish_purge_event
 from src.db.database import init_db, create_incident, get_pending_incidents, get_incident, update_incident_status
 
@@ -21,7 +21,7 @@ async def alertmanager_webhook(request: Request):
     for alert in payload.get("alerts", []):
         if alert.get("status") == "firing":
             try:
-                diagnosis = diagnosis_alert(alert)
+                diagnosis = diagnose_alert(alert)
 
                 # Print for observability
                 print("--- NEW INCIDENT DIAGNOSIS ---")
