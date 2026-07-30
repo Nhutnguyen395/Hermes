@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentinel-agent-config
+  namespace: default
+data:
+  KAFKA_BROKER: "kafka-cluster-kafka-bootstrap:9092"
+  KAFKA_PURGE_TOPIC: "cache-purge-events"
+  AUTO_REMEDIATE_ENABLED: "false"
