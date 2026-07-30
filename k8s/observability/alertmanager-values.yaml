@@ -1,0 +1,25 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname', 'job']
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1h
+      receiver: 'null'
+      routes:
+        - receiver: 'null'
+          matchers:
+            - alertname="Watchdog"
+        - receiver: 'sentinel-agent-webhook'
+          matchers:
+            - alertname="RateLimit503Storm"
+          continue: true
+    receivers:
+      - name: 'null'
+      - name: 'sentinel-agent-webhook'
+        webhook_configs:
+          # Internal kubernetes DNS for deployed agent
+          - url: 'http://sentinel-agent-svc.default.svc.cluster.local:8080/webhook'
+            send_resolved: true

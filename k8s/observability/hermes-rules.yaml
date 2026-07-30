@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: hermes-cdn-rules
+  namespace: monitoring
+  labels:
+    release: hermes-monitoring
+spec:
+  groups:
+    - name: hermes-cdn.rules
+      rules:
+        - alert: RateLimit503Storm
+          expr: sum(rate(container_network_receive_bytes_total{namespace="default"}[1m])) > 10000
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            descriptions: "Massive request spike detected. Potential DDoS or Rate Limit Storm on Edge PoPs."
+
+        - alert: CacheMissSpike
+          expr: sum(rate(nginx_http_requests_total{status="404"}[1m])) > 50
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            descriptions: "Sustained MISS spike on cache keys. Suspect stale entry."

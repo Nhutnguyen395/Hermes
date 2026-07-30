@@ -4,7 +4,7 @@ import { check, sleep } from 'k6';
 // Configure the load test: 50 virtual users for 30 seconds
 export const options = {
     vus: 50,
-    duration: '30s',
+    duration: '3m',
 };
 
 const regions = ['US', 'EU', 'AP', 'SA'];
@@ -23,7 +23,7 @@ export default function () {
         headers: {
             'X-User-Region': randomRegion,
             'X-simulated-IP': fakeIP,
-            'Authorization': // Enter your own Bearer Token from Auth0 here "Bearer TOKEN"
+            'Authorization': // input your API token here "Bearer Token"
         },
     };
 
