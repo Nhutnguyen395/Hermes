@@ -6,4 +6,4 @@ metadata:
 data:
   KAFKA_BROKER: "hermes-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
   KAFKA_PURGE_TOPIC: "cache-purge-events"
-  AUTO_REMEDIATE_ENABLED: "false"
+  AUTO_REMEDIATE_ENABLED: "true"

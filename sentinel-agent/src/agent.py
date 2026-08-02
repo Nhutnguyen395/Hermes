@@ -17,6 +17,7 @@ def diagnose_alert(alert_payload: dict) -> Diagnosis:
     2. If the alert is about a Pod Crash, OOMKilled, or PodCrashLoopBackOff -> Action MUST be 'scale_replica'.
     3. If the alert is about Gateway Routing Mismatch or high global latency -> Action MUST be 'reroute'.
     4. If the alert is about a DDoS, 503 Storm, or massive request spikes -> Action MUST be 'adjust_rate_limit'.
+    5. If the alert is about a CatastrophicCacheHitDrop or Global Cache Wipe -> Action MUST be 'purge_all'.
     
     Be highly confident (0.9 or 1.0) if the alert is perfectly matches these rules.
     Do not output markdown, only the structured JSON requested.

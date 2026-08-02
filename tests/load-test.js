@@ -23,7 +23,7 @@ export default function () {
         headers: {
             'X-User-Region': randomRegion,
             'X-simulated-IP': fakeIP,
-            'Authorization': // input your API token here "Bearer Token"
+            'Authorization': "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVjX3NjMUNKdjlxWWd1bjBPQzlBaSJ9.eyJpc3MiOiJodHRwczovL2Rldi1vcWxoNmZiZGZsODU0ZjRjLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJSM1hsblFNNjJ6QmVuRGtPY3NNTFRKVG1VejlyZnBDdUBjbGllbnRzIiwiYXVkIjoiaHR0cHM6Ly9oZXJtZXMtYXBpLWVuZHBvaW50LyIsImlhdCI6MTc4NTM4Nzg5MiwiZXhwIjoxNzg1NDc0MjkyLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJSM1hsblFNNjJ6QmVuRGtPY3NNTFRKVG1VejlyZnBDdSJ9.tXStLWiRxL3Hv9Jv4jLcole_92hKoCQ2nHTvfLBFe2pETXaguZxf3daQmVasVZxzvBwlfRnG6RA4aYbkhsTx4TtshBybSK8x0DY0epyULdBqHKMJxpwrhbCSDPKhabHGgYsGwrhjifTuwbmvvWKSpwvFqSskJBm7gNGgRzRIOrMy2wYq9_6vaAYMVBeXZlDpeNU0nIpDydzgAXryzo6MfICBalwl9FZ0fAK_CsRKdMDZzTqx4NQ-iyhe0OOEq469brZGnLea-byf-FtsvkxEZn_ttHR7SOsMJ0xyvOMYSNkEh4QVs_itfbvO5dsPYXOAroBjfwsYjU7H7M9kgFAJKg"
         },
     };
 

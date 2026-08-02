@@ -24,3 +24,19 @@ spec:
             severity: warning
           annotations:
             descriptions: "Sustained MISS spike on cache keys. Suspect stale entry."
+
+        - alert: PodCrashLoopBackOff
+          expr: rate(kube_pod_container_status_restarts_total{namespace="default"}[5m]) > 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            description: "Pod is crashlooping. Possible OOMKilled."
+
+        - alert: HighLatencyGlobal
+          expr: histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket[5m])) by (le)) > 2.0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            description: "Global latency exceeded 2 seconds. Gateway routing matrix mismatch."
