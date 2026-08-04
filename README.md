@@ -1,6 +1,6 @@
 ﻿<br/>
 <div align="center">
-  <h1 align="center">Hermes: Local Development Global CDN Simulator</h1>
+  <h1 align="center">Hermes: Cloud-Native Global CDN Simulator</h1>
   <p align="center">
     Hermes is a locally deployable, distributed Content Delivery Network (CDN) simulator built to explore advanced backend engineering, Kubernetes orchestration, and event-driven architecture.
     It simulates a global network with a core Java Spring Boot Origin and geographically distributed NGINX Edge Proxies, featuring Layer 7 Geo-Routing, Kafka-driven cache invalidation, and full Prometheus/Grafana observability.
